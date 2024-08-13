@@ -1,72 +1,85 @@
-const destino1 = { ciudad: "Santorini", precio: 200 }
-const destino2 = { ciudad: "Paris", precio: 350 }
-const destino3 = { ciudad: "Tokyo", precio: 600 }
-const destino4 = { ciudad: "Rio de Janeiro", precio: 150 }
+const destinos = [
+    { ciudad: "Santorini", precio: 200 },
+    { ciudad: "Paris", precio: 350 },
+    { ciudad: "Tokyo", precio: 600 },
+    { ciudad: "Rio de Janeiro", precio: 150 }
+];
 
-const destinos = { destino1, destino2, destino3, destino4 }
+const reservas = JSON.parse(localStorage.getItem("reservas")) || [];
 
-const datosReservas = [];
 
-function calculadoraprecio(preciopordia, dias) {
-    let valorfinal = preciopordia * dias
-    return preciopordia * dias;
+// Función para mostrar los destinos
+function mostrarDestinos() {
+    const contenedor = document.getElementById("destinos-container");
+    contenedor.innerHTML = "";
+
+    destinos.forEach((destino, index) => {
+        const destinoElement = document.createElement("div");
+        destinoElement.innerHTML = `
+            <h2>${destino.ciudad}</h2>
+            <p>Precio: $${destino.precio}</p>
+            <button id="reservar-${index}" data-ciudad="${destino.ciudad}" data-precio="${destino.precio}">Reservar</button>
+        `;
+        contenedor.appendChild(destinoElement);
+    });
+
+    // Añadir manejadores de eventos para cada botón
+    agregarEventosBotones();
 }
 
-function datospersonales() {
-    const nombre = prompt("Introduzca su nombre");
-    const apellido = prompt("Introduzca su apellido");
-    const email = prompt("Introduzca su mail");
-    return { nombre, apellido, email };
+// Función para agregar eventos a los botones usando getElementById
+function agregarEventosBotones() {
+    destinos.forEach((_, index) => {
+        const boton = document.getElementById(`reservar-${index}`);
+
+        boton.onclick = function () {
+            const ciudad = this.getAttribute("data-ciudad");
+            const precio = parseFloat(this.getAttribute("data-precio"));
+
+            // Registrar la reserva
+            reservas.push({ ciudad, precio });
+
+            // Guardar las reservas en localStorage
+            localStorage.setItem("reservas", JSON.stringify(reservas));
+
+            // Mostrar mensaje de confirmación
+            alert(`Reserva confirmada para ${ciudad} con un precio de $${precio}`);
+
+            // Mostrar reservas actualizadas
+            mostrarReservas();
+            mostrarTotalReservas(); // Mostrar el total de las reservas
+        };
+    });
 }
 
+// Función para mostrar las reservas en la página
+function mostrarReservas() {
+    const contenedor = document.getElementById("reservas-container");
+    contenedor.innerHTML = "";
 
-function guardarDatosReserva(datos, ciudad, dias, precio) {
-    datosReservas.push({ ...datos, ciudad, dias, precio });
+    reservas.forEach(reserva => {
+        const reservaElement = document.createElement("div");
+        reservaElement.innerHTML = `
+            <h3>${reserva.ciudad}</h3>
+            <p>Precio: $${reserva.precio}</p>
+        `;
+        contenedor.appendChild(reservaElement);
+    });
 }
 
+// Función para mostrar el total de las reservas
+function mostrarTotalReservas() {
+    const total = reservas
+        .map(reserva => reserva.precio) // Extraer precios de las reservas
+        .reduce((acc, precio) => acc + precio, 0); // Sumar los precios
 
-let ciudades = prompt("que ciudad deseas elegir? Santorini, Paris, Tokyo, Rio de Janeiro")
+    const contenedor = document.getElementById("total-container");
+    contenedor.innerHTML = `<h3>Total de Reservas: $${total.toFixed(2)}</h3>`;
+}
 
-if (ciudades == destino1.ciudad) {
-    let dias = parseInt(prompt("cuantos dias queres viajar?"))
-    let preciototal = calculadoraprecio(destino1.precio, dias);
-    let confirmar = prompt("El precio para " + dias + " dias es " + preciototal + " dolares. desea continuar?")
-    if (confirmar == "si") {
-        let datos = datospersonales()
-        guardarDatosReserva(datos, destino1.ciudad, dias, preciototal);
-        alert("Reserva confirmada a nombre de " + datos.nombre + " " + datos.apellido + " Detalles enviados a " + datos.email + ".")
-    }} else if (ciudades == destino2.ciudad) {
-        let dias = parseInt(prompt("cuantos dias queres viajar?"))
-        let preciototal = calculadoraprecio(destino2.precio, dias);
-        let confirmar = prompt("El precio para " + dias + " dias es " + preciototal + " dolares. desea continuar?")
-        if (confirmar == "si") {
-            let datos = datospersonales()
-            guardarDatosReserva(datos, destino2.ciudad, dias, preciototal);
-            alert("Reserva confirmada a nombre de " + datos.nombre + " " + datos.apellido + " Detalles enviados a " + datos.email + ".")
-        }} else if (ciudades == destino3.ciudad) {
-            let dias = parseInt(prompt("cuantos dias queres viajar?"))
-            let preciototal = calculadoraprecio(destino3.precio, dias);
-            let confirmar = prompt("El precio para " + dias + " dias es " + preciototal + " dolares. desea continuar?")
-            if (confirmar == "si") {
-                let datos = datospersonales()
-                guardarDatosReserva(datos, destino3.ciudad, dias, preciototal);
-                alert("Reserva confirmada a nombre de " + datos.nombre + " " + datos.apellido + " Detalles enviados a " + datos.email + ".")
-            }} else if (ciudades == destino4.ciudad) {
-                let dias = parseInt(prompt("cuantos dias queres viajar?"))
-                let preciototal = calculadoraprecio(destino4.precio, dias);
-                let confirmar = prompt("El precio para " + dias + " dias es " + preciototal + " dolares. desea continuar?")
-                if (confirmar == "si") {
-                    let datos = datospersonales()
-                    guardarDatosReserva(datos, destino4.ciudad, dias, preciototal);
-                    alert("Reserva confirmada a nombre de " + datos.nombre + " " + datos.apellido + " Detalles enviados a " + datos.email + ".")
-        } else {
-            alert("cancelaste la reserva")
-        }
-    }
-    else {
-        alert("error de escritura")
-    }
-
-    for (let i = 0; i < datosReservas.length; i++) {
-        console.log("Reserva " + i + ": " + datosReservas[i].nombre + " " + datosReservas[i].apellido + ", Ciudad: " + datosReservas[i].ciudad + ", Días: " + datosReservas[i].dias + ", Precio: " + datosReservas[i].precio);
-    }
+// Llamar a la función cuando la página cargue
+document.addEventListener("DOMContentLoaded", () => {
+    mostrarDestinos();
+    mostrarReservas(); // Mostrar reservas al cargar la página
+    mostrarTotalReservas(); // Mostrar total de reservas al cargar la página
+});
