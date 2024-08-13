@@ -23,11 +23,10 @@ function mostrarDestinos() {
         contenedor.appendChild(destinoElement);
     });
 
-    // Añadir manejadores de eventos para cada botón
     agregarEventosBotones();
 }
 
-// Función para agregar eventos a los botones usando getElementById
+// Función para agregar eventos a los botones
 function agregarEventosBotones() {
     destinos.forEach((_, index) => {
         const boton = document.getElementById(`reservar-${index}`);
@@ -36,18 +35,15 @@ function agregarEventosBotones() {
             const ciudad = this.getAttribute("data-ciudad");
             const precio = parseFloat(this.getAttribute("data-precio"));
 
-            // Registrar la reserva
             reservas.push({ ciudad, precio });
 
             // Guardar las reservas en localStorage
             localStorage.setItem("reservas", JSON.stringify(reservas));
 
-            // Mostrar mensaje de confirmación
             alert(`Reserva confirmada para ${ciudad} con un precio de $${precio}`);
 
-            // Mostrar reservas actualizadas
             mostrarReservas();
-            mostrarTotalReservas(); // Mostrar el total de las reservas
+            mostrarTotalReservas(); 
         };
     });
 }
@@ -70,8 +66,8 @@ function mostrarReservas() {
 // Función para mostrar el total de las reservas
 function mostrarTotalReservas() {
     const total = reservas
-        .map(reserva => reserva.precio) // Extraer precios de las reservas
-        .reduce((acc, precio) => acc + precio, 0); // Sumar los precios
+        .map(reserva => reserva.precio) 
+        .reduce((acc, precio) => acc + precio, 0); 
 
     const contenedor = document.getElementById("total-container");
     contenedor.innerHTML = `<h3>Total de Reservas: $${total.toFixed(2)}</h3>`;
@@ -80,6 +76,6 @@ function mostrarTotalReservas() {
 // Llamar a la función cuando la página cargue
 document.addEventListener("DOMContentLoaded", () => {
     mostrarDestinos();
-    mostrarReservas(); // Mostrar reservas al cargar la página
-    mostrarTotalReservas(); // Mostrar total de reservas al cargar la página
+    mostrarReservas(); 
+    mostrarTotalReservas(); 
 });
