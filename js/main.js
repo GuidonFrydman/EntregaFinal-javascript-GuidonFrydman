@@ -47,13 +47,10 @@ function agregarEventosBotones() {
 
                 const precioTotal = precioPorDia * dias * personas;
 
-                // Buscar si ya existe una reserva para esta ciudad
                 const reservaExistenteIndex = reservas.findIndex(reserva => reserva.ciudad === ciudad);
 
                 if (reservaExistenteIndex !== -1) {
-                    // Mostrar mensaje de aviso
                     if (confirm(`Ya tienes una reserva para ${ciudad}. ¿Deseas modificarla o eliminarla?`)) {
-                        // Modificar reserva existente
                         const nuevaCantidadDias = parseInt(prompt("Ingrese la nueva cantidad de días:", reservas[reservaExistenteIndex].dias));
                         const nuevaCantidadPersonas = parseInt(prompt("Ingrese la nueva cantidad de personas:", reservas[reservaExistenteIndex].personas));
 
@@ -70,14 +67,12 @@ function agregarEventosBotones() {
                             alert("Entrada inválida. Asegúrate de ingresar valores válidos para la cantidad de días y personas.");
                         }
                     } else {
-                        // Eliminar reserva existente
                         reservas.splice(reservaExistenteIndex, 1);
                         localStorage.setItem("reservas", JSON.stringify(reservas));
 
                         mostrarReservas();
                         mostrarTotalReservas();
 
-                        // Hacer nueva reserva
                         reservas.push({ ciudad, precioTotal, dias, personas });
                         localStorage.setItem("reservas", JSON.stringify(reservas));
 
@@ -85,7 +80,6 @@ function agregarEventosBotones() {
                         mostrarTotalReservas();
                     }
                 } else {
-                    // Agregar una nueva reserva
                     reservas.push({ ciudad, precioTotal, dias, personas });
                     localStorage.setItem("reservas", JSON.stringify(reservas));
 
