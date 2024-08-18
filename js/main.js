@@ -205,8 +205,6 @@ function mostrarTotalReservas() {
 }
 
 // Llamar a la función cuando la página cargue
-document.addEventListener("DOMContentLoaded", () => {
-    mostrarDestinos();
-    mostrarReservas(); 
-    mostrarTotalReservas(); 
-});
+mostrarDestinos();
+mostrarReservas(); 
+mostrarTotalReservas(); 
