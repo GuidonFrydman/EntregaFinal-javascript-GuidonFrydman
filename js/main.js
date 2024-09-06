@@ -1,13 +1,24 @@
-const destinos = [
-    { ciudad: "Santorini", precio: 200 },
-    { ciudad: "Paris", precio: 350 },
-    { ciudad: "Tokyo", precio: 600 },
-    { ciudad: "Rio de Janeiro", precio: 150 }
-];
+let destinos = [];
+let reservas = [];
 
-let reservas = JSON.parse(localStorage.getItem("reservas")) || [];
+// Cargar destinos desde el archivo JSON
+async function cargarDestinosDesdeJSON() {
+    try {
+        const response = await fetch('./db/data.json');
+        if (!response.ok) {
+            throw new Error('No se pudo cargar el archivo JSON');
+        }
 
-// Función para mostrar los destinos
+        const data = await response.json();
+        destinos = data;
+        mostrarDestinos();
+    } catch (error) {
+        console.error('Error al cargar destinos:', error);
+    } finally {
+        console.log('Intento de carga de destinos finalizado.');
+    }
+}
+// Mostrar los destinos en la interfaz
 function mostrarDestinos() {
     const contenedor = document.getElementById("destinos-container");
     contenedor.innerHTML = "";
@@ -21,14 +32,13 @@ function mostrarDestinos() {
             <input type="number" id="personas-${index}" min="1" placeholder="Cantidad de personas">
             <button id="reservar-${index}" data-ciudad="${destino.ciudad}" data-precio="${destino.precio}">Reservar</button>
         `;
-
         contenedor.appendChild(destinoElement);
     });
 
     agregarEventosBotones();
 }
 
-// Función para agregar eventos a los botones
+// Agregar eventos a los botones de reserva
 function agregarEventosBotones() {
     destinos.forEach((_, index) => {
         const boton = document.getElementById(`reservar-${index}`);
@@ -41,7 +51,11 @@ function agregarEventosBotones() {
                 const personas = parseInt(document.getElementById(`personas-${index}`).value);
 
                 if (isNaN(dias) || dias <= 0 || isNaN(personas) || personas <= 0) {
-                    alert("Por favor, ingresa una cantidad válida de días y personas.");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Entrada inválida',
+                        text: 'Por favor, ingresa una cantidad válida de días y personas.'
+                    });
                     return;
                 }
 
@@ -50,35 +64,65 @@ function agregarEventosBotones() {
                 const reservaExistenteIndex = reservas.findIndex(reserva => reserva.ciudad === ciudad);
 
                 if (reservaExistenteIndex !== -1) {
-                    if (confirm(`Ya tienes una reserva para ${ciudad}. ¿Deseas modificarla o eliminarla?`)) {
-                        const nuevaCantidadDias = parseInt(prompt("Ingrese la nueva cantidad de días:", reservas[reservaExistenteIndex].dias));
-                        const nuevaCantidadPersonas = parseInt(prompt("Ingrese la nueva cantidad de personas:", reservas[reservaExistenteIndex].personas));
+                    Swal.fire({
+                        title: `Ya tienes una reserva para ${ciudad}`,
+                        text: '¿Deseas modificarla o eliminarla?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Modificar',
+                        cancelButtonText: 'Eliminar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Ingrese la nueva cantidad de días:',
+                                input: 'number',
+                                inputValue: reservas[reservaExistenteIndex].dias,
+                                showCancelButton: true,
+                                inputValidator: (value) => {
+                                    return (!value || value <= 0) && 'Por favor, ingresa una cantidad válida de días.';
+                                }
+                            }).then((resultDias) => {
+                                if (resultDias.isConfirmed) {
+                                    const nuevaCantidadDias = parseInt(resultDias.value);
 
-                        if (!isNaN(nuevaCantidadDias) && nuevaCantidadDias > 0 && !isNaN(nuevaCantidadPersonas) && nuevaCantidadPersonas > 0) {
-                            reservas[reservaExistenteIndex].dias = nuevaCantidadDias;
-                            reservas[reservaExistenteIndex].personas = nuevaCantidadPersonas;
-                            reservas[reservaExistenteIndex].precioTotal = precioPorDia * nuevaCantidadDias * nuevaCantidadPersonas;
+                                    Swal.fire({
+                                        title: 'Ingrese la nueva cantidad de personas:',
+                                        input: 'number',
+                                        inputValue: reservas[reservaExistenteIndex].personas,
+                                        showCancelButton: true,
+                                        inputValidator: (value) => {
+                                            return (!value || value <= 0) && 'Por favor, ingresa una cantidad válida de personas.';
+                                        }
+                                    }).then((resultPersonas) => {
+                                        if (resultPersonas.isConfirmed) {
+                                            const nuevaCantidadPersonas = parseInt(resultPersonas.value);
 
+                                            reservas[reservaExistenteIndex].dias = nuevaCantidadDias;
+                                            reservas[reservaExistenteIndex].personas = nuevaCantidadPersonas;
+                                            reservas[reservaExistenteIndex].precioTotal = precioPorDia * nuevaCantidadDias * nuevaCantidadPersonas;
+
+                                            localStorage.setItem("reservas", JSON.stringify(reservas));
+
+                                            mostrarReservas();
+                                            mostrarTotalReservas();
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            reservas.splice(reservaExistenteIndex, 1);
                             localStorage.setItem("reservas", JSON.stringify(reservas));
 
                             mostrarReservas();
                             mostrarTotalReservas();
-                        } else {
-                            alert("Entrada inválida. Asegúrate de ingresar valores válidos para la cantidad de días y personas.");
+
+                            reservas.push({ ciudad, precioTotal, dias, personas });
+                            localStorage.setItem("reservas", JSON.stringify(reservas));
+
+                            mostrarReservas();
+                            mostrarTotalReservas();
                         }
-                    } else {
-                        reservas.splice(reservaExistenteIndex, 1);
-                        localStorage.setItem("reservas", JSON.stringify(reservas));
-
-                        mostrarReservas();
-                        mostrarTotalReservas();
-
-                        reservas.push({ ciudad, precioTotal, dias, personas });
-                        localStorage.setItem("reservas", JSON.stringify(reservas));
-
-                        mostrarReservas();
-                        mostrarTotalReservas();
-                    }
+                    });
                 } else {
                     reservas.push({ ciudad, precioTotal, dias, personas });
                     localStorage.setItem("reservas", JSON.stringify(reservas));
@@ -86,90 +130,12 @@ function agregarEventosBotones() {
                     mostrarReservas();
                     mostrarTotalReservas();
                 }
-
-                // Mostrar el botón de confirmar reserva
-                document.getElementById("confirmar-reserva-button").style.display = "block";
             };
         }
     });
 }
 
-document.getElementById("confirmar-reserva-button").onclick = function () {
-    document.getElementById("formulario-container").style.display = "block";
-};
-
-document.getElementById("cancelar-formulario").onclick = function () {
-    document.getElementById("formulario-container").style.display = "none";
-};
-
-document.getElementById("formulario").onsubmit = function (event) {
-    event.preventDefault();
-
-    const nombre = document.getElementById("nombre").value;
-    const mail = document.getElementById("email").value;
-    const telefono = document.getElementById("telefono").value;
-
-    if (nombre && mail && telefono) {
-        alert(`Reserva confirmada!\nNombre: ${nombre}\nMail: ${mail}\nTeléfono: ${telefono}`);
-
-        // Limpiar reservas y localStorage después de confirmar
-        reservas = [];
-        localStorage.removeItem("reservas");
-
-        mostrarReservas();
-        mostrarTotalReservas();
-
-        document.getElementById("formulario-container").style.display = "none";
-        document.getElementById("confirmar-reserva-button").style.display = "none";
-    } else {
-        alert("Por favor, completa todos los campos.");
-    }
-};
-
-function agregarEventosEliminar() {
-    reservas.forEach((_, index) => {
-        const botonEliminar = document.getElementById(`eliminar-${index}`);
-
-        if (botonEliminar) {
-            botonEliminar.onclick = function () {
-                reservas.splice(index, 1);
-                localStorage.setItem("reservas", JSON.stringify(reservas));
-                mostrarReservas();
-                mostrarTotalReservas();
-            };
-        }
-    });
-}
-
-function agregarEventosModificar() {
-    reservas.forEach((_, index) => {
-        const botonModificar = document.getElementById(`modificar-${index}`);
-
-        if (botonModificar) {
-            botonModificar.onclick = function () {
-                const reservaIndex = parseInt(this.getAttribute("data-index"));
-                const nuevaCantidadDias = parseInt(prompt("Ingrese la nueva cantidad de días:", reservas[reservaIndex].dias));
-                const nuevaCantidadPersonas = parseInt(prompt("Ingrese la nueva cantidad de personas:", reservas[reservaIndex].personas));
-
-                if (!isNaN(nuevaCantidadDias) && nuevaCantidadDias > 0 && !isNaN(nuevaCantidadPersonas) && nuevaCantidadPersonas > 0) {
-                    const precioPorDia = destinos.find(destino => destino.ciudad === reservas[reservaIndex].ciudad).precio;
-                    reservas[reservaIndex].dias = nuevaCantidadDias;
-                    reservas[reservaIndex].personas = nuevaCantidadPersonas;
-                    reservas[reservaIndex].precioTotal = precioPorDia * nuevaCantidadDias * nuevaCantidadPersonas;
-
-                    localStorage.setItem("reservas", JSON.stringify(reservas));
-
-                    mostrarReservas();
-                    mostrarTotalReservas();
-                } else {
-                    alert("Entrada inválida. Asegúrate de ingresar valores válidos para la cantidad de días y personas.");
-                }
-            };
-        }
-    });
-}
-
-// Función para mostrar las reservas en la página
+// Mostrar reservas en la página
 function mostrarReservas() {
     const contenedor = document.getElementById("reservas-container");
     contenedor.innerHTML = "";
@@ -190,21 +156,123 @@ function mostrarReservas() {
         contenedor.appendChild(reservaElement);
     });
 
+    // Mostrar u ocultar el botón de confirmar reserva según el número de reservas
+    const confirmarReservaButton = document.getElementById("confirmar-reserva-button");
+    if (reservas.length > 0) {
+        confirmarReservaButton.style.display = "block";
+    } else {
+        confirmarReservaButton.style.display = "none";
+    }
+
     agregarEventosEliminar();
     agregarEventosModificar();
 }
 
-// Función para mostrar el total de las reservas
+// Mostrar el total de las reservas
 function mostrarTotalReservas() {
     const total = reservas
-        .map(reserva => reserva.precioTotal) 
-        .reduce((acc, precio) => acc + precio, 0); 
+        .map(reserva => reserva.precioTotal)
+        .reduce((acc, precio) => acc + precio, 0);
 
     const contenedor = document.getElementById("total-container");
     contenedor.innerHTML = `<h3>Total de Reservas: $${total.toFixed(2)}</h3>`;
 }
 
-// Llamar a la función cuando la página cargue
-mostrarDestinos();
-mostrarReservas(); 
-mostrarTotalReservas(); 
+// Agregar eventos a los botones de eliminar
+function agregarEventosEliminar() {
+    reservas.forEach((_, index) => {
+        const botonEliminar = document.getElementById(`eliminar-${index}`);
+
+        if (botonEliminar) {
+            botonEliminar.onclick = function () {
+                Swal.fire({
+                    title: '¿Estás seguro de que quieres eliminar esta reserva?',
+                    text: 'Una vez eliminada, no podrás recuperar esta reserva.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        reservas.splice(index, 1);
+                        localStorage.setItem("reservas", JSON.stringify(reservas));
+                        mostrarReservas();
+                        mostrarTotalReservas();
+                    }
+                });
+            };
+        }
+    });
+}
+
+// Agregar eventos a los botones de modificar
+function agregarEventosModificar() {
+    reservas.forEach((_, index) => {
+        const botonModificar = document.getElementById(`modificar-${index}`);
+
+        if (botonModificar) {
+            botonModificar.onclick = function () {
+                Swal.fire({
+                    title: 'Ingrese la nueva cantidad de días:',
+                    input: 'number',
+                    inputValue: reservas[index].dias,
+                    showCancelButton: true,
+                    inputValidator: (value) => {
+                        return (!value || value <= 0) && 'Por favor, ingresa una cantidad válida de días.';
+                    }
+                }).then((resultDias) => {
+                    if (resultDias.isConfirmed) {
+                        const nuevaCantidadDias = parseInt(resultDias.value);
+
+                        Swal.fire({
+                            title: 'Ingrese la nueva cantidad de personas:',
+                            input: 'number',
+                            inputValue: reservas[index].personas,
+                            showCancelButton: true,
+                            inputValidator: (value) => {
+                                return (!value || value <= 0) && 'Por favor, ingresa una cantidad válida de personas.';
+                            }
+                        }).then((resultPersonas) => {
+                            if (resultPersonas.isConfirmed) {
+                                const nuevaCantidadPersonas = parseInt(resultPersonas.value);
+
+
+                                const precioPorDia = reservas[index].precioTotal / (reservas[index].dias * reservas[index].personas);
+
+                          
+                                reservas[index].dias = nuevaCantidadDias;
+                                reservas[index].personas = nuevaCantidadPersonas;
+                                reservas[index].precioTotal = precioPorDia * nuevaCantidadDias * nuevaCantidadPersonas;
+
+                                localStorage.setItem("reservas", JSON.stringify(reservas));
+                                mostrarReservas();
+                                mostrarTotalReservas();
+                            }
+                        });
+                    }
+                });
+            };
+        }
+    });
+}
+
+// Inicializar la aplicación
+function inicializarApp() {
+    cargarDestinosDesdeJSON();
+
+    const confirmarReservaButton = document.getElementById("confirmar-reserva-button");
+    confirmarReservaButton.onclick = function () {
+        if (reservas.length > 0) {
+            window.location.href = '../pages/confirmacion.html'; 
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No hay reservas',
+                text: 'No hay reservas para confirmar.'
+            });
+        }
+    };
+}
+
+// Ejecutar la función de inicialización cuando se carga el script
+inicializarApp();
