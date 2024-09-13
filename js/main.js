@@ -18,6 +18,9 @@ async function cargarDestinosDesdeJSON() {
         console.log('Intento de carga de destinos finalizado.');
     }
 }
+
+// Llamada inicial para cargar los destinos
+cargarDestinosDesdeJSON();
 // Mostrar los destinos en la interfaz
 function mostrarDestinos() {
     const contenedor = document.getElementById("destinos-container");
