@@ -4,7 +4,7 @@ let reservas = [];
 // Cargar destinos desde el archivo JSON
 async function cargarDestinosDesdeJSON() {
     try {
-        const response = await fetch('./db/data.json');
+        const response = await fetch('../db/data.json');
         if (!response.ok) {
             throw new Error('No se pudo cargar el archivo JSON');
         }
