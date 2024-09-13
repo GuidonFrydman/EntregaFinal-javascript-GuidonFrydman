@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css"> 
+    <title>Modificación de Reserva</title>
+    <script src="../js/reservas.js" defer></script>
+</head>
+<body>
+    <div id="reservas-confirmadas"></div>
+
+    <div id="formulario-edicion" style="display: none;">
+        <form>
+            <label for="nombre-edicion">Nombre:</label>
+            <input type="text" id="nombre-edicion" required>
+            <label for="email-edicion">Email:</label>
+            <input type="email" id="email-edicion" required>
+            <label for="telefono-edicion">Teléfono:</label>
+            <input type="tel" id="telefono-edicion" required>
+            <button type="submit">Guardar Cambios</button>
+            <button type="button" onclick="cancelarEdicion()">Cancelar</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

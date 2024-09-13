@@ -258,12 +258,24 @@ function agregarEventosModificar() {
 
 // Inicializar la aplicación
 function inicializarApp() {
-    cargarDestinosDesdeJSON();
+
+    const reservasGuardadas = localStorage.getItem("reservas");
+    if (reservasGuardadas) {
+        reservas = JSON.parse(reservasGuardadas);
+    }
+
+       // Cargar destinos desde el JSON y esperar a que termine
+        cargarDestinosDesdeJSON();
+
+       
+mostrarReservas(); // Mostrar reservas cargadas desde localStorage
+mostrarTotalReservas(); // Mostrar el total cargado desde localStorage
+
 
     const confirmarReservaButton = document.getElementById("confirmar-reserva-button");
     confirmarReservaButton.onclick = function () {
         if (reservas.length > 0) {
-            window.location.href = '../pages/confirmacion.html'; 
+            window.location.href = './pages/confirmacion.html'; 
         } else {
             Swal.fire({
                 icon: 'warning',
@@ -273,6 +285,28 @@ function inicializarApp() {
         }
     };
 }
+// Función para crear y agregar el botón de modificar reservas
+function crearBotonModificar() {
+    // Obtener las reservas confirmadas del localStorage
+    const reservasConfirmadas = JSON.parse(localStorage.getItem("reservasConfirmadas")) || [];
+    
+    // Solo crear y agregar el botón si hay reservas confirmadas
+    if (reservasConfirmadas.length > 0) {
+        // Crear el botón
+        const botonModificar = document.createElement("button");
+        botonModificar.textContent = "Modificar Reservas";
+        botonModificar.id = "modificar-reservas-button";
+        
+        // Agregar el evento al botón
+        botonModificar.onclick = function () {
+            window.location.href = './pages/reservas.html';
+        };
+        
+        // Agregar el botón al cuerpo de la página (o a otro contenedor adecuado)
+        document.body.appendChild(botonModificar);
+    }
+}
 
 // Ejecutar la función de inicialización cuando se carga el script
 inicializarApp();
+crearBotonModificar();

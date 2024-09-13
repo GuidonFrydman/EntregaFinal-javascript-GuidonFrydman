@@ -7,8 +7,8 @@ function mostrarDatosReserva(reservas) {
         return;
     }
 
-    contenedor.innerHTML = ""; // Limpiar el contenedor antes de agregar nuevos datos
-
+    contenedor.innerHTML = ""; 
+    
     reservas.forEach(reserva => {
         const reservaElement = document.createElement("div");
         reservaElement.innerHTML = `
@@ -26,7 +26,7 @@ const reservas = JSON.parse(localStorage.getItem("reservas")) || [];
 
 // Verificar si hay reservas y mostrar los datos
 if (reservas.length === 0) {
-    window.location.href = "../index.html"; // Redirigir a la página principal si no hay reservas
+    window.location.href = "../index.html"; 
 } else {
     mostrarDatosReserva(reservas);
 }
@@ -40,6 +40,24 @@ if (formulario) {
         const nombre = document.getElementById("nombre").value;
         const email = document.getElementById("email").value;
         const telefono = document.getElementById("telefono").value;
+
+        const reservasConfirmadas = JSON.parse(localStorage.getItem("reservasConfirmadas")) || [];
+
+        // Agregar las reservas actuales al array de reservas confirmadas
+        reservas.forEach(reserva => {
+            // Agregar datos personales a la reserva
+            const reservaConDatos = {
+                ...reserva,  
+                nombre,      
+                email,       
+                telefono     
+            };
+            reservasConfirmadas.push(reservaConDatos);  
+        });
+
+        // Guardar el array actualizado en localStorage
+        localStorage.setItem("reservasConfirmadas", JSON.stringify(reservasConfirmadas));
+
 
         Swal.fire({
             icon: 'success',
@@ -66,10 +84,8 @@ if (cancelarButton) {
 const botonVolver = document.createElement('button');
 botonVolver.textContent = 'Volver a Agregar Destino';
 
-// Agregar funcionalidad al botón "Volver"
 botonVolver.addEventListener('click', () => {
     window.history.back(); 
 });
 
-// Añadir el botón al cuerpo de la página
 document.body.appendChild(botonVolver);
