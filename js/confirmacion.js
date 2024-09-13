@@ -8,7 +8,7 @@ function mostrarDatosReserva(reservas) {
     }
 
     contenedor.innerHTML = ""; 
-    
+
     reservas.forEach(reserva => {
         const reservaElement = document.createElement("div");
         reservaElement.innerHTML = `
@@ -21,7 +21,6 @@ function mostrarDatosReserva(reservas) {
     });
 }
 
-// Cargar y procesar las reservas una vez que el DOM esté listo
 const reservas = JSON.parse(localStorage.getItem("reservas")) || [];
 
 // Verificar si hay reservas y mostrar los datos
